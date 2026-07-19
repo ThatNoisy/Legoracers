@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGO Racers Arcade</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; display: none; }
+        #loading-screen {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ff66; font-family: system-ui, sans-serif;
+            text-align: center; font-size: 20px; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        🏎️ Downloading LEGO Racers into Local Memory...<br>
+        <span style="font-size: 14px; color: #888;">(This takes 10-20 seconds for N64 files)</span>
+    </div>
+
+    <iframe 
+        id="webretro-frame"
+        allow="autoplay; gamepad; fullscreen">
+    </iframe>
+
+    <script>
+        // 1. Automatically find your game file next to this index.html page
+        const currentFolder = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+        const romUrl = currentFolder + "Legoracers.z64";
+
+        // 2. Fetch the file as a raw data block (Blob) to bypass cross-site security rules
+        fetch(romUrl)
+            .then(response => {
+                if (!response.ok) throw new Error("Could not find file");
+                return response.blob();
+            })
+            .then(blob => {
+                // 3. Create a unique, local browser URL for the game data
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // 4. Inject the local URL into Webretro using the parallel engine core
+                const iframe = document.getElementById('webretro-frame');
+                iframe.src = "https://binbashbanana.github.io/webretro/?core=parallel_n64&rom=" + encodeURIComponent(blobUrl);
+                
+                // 5. Swap the loading text out for the active game frame
+                document.getElementById('loading-screen').style.display = 'none';
+                iframe.style.display = 'block';
+            })
+            .catch(err => {
+                document.getElementById('loading-screen').innerHTML = 
+                    "<span style='color: red;'>Error: Could not load Legoracers.z64.<br>Make sure the file name matches perfectly!</span>";
+            });
+    </script>
+
+</body>
+</html>
